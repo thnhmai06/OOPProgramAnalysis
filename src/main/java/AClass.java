@@ -1,4 +1,6 @@
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 
 /**
@@ -11,32 +13,32 @@ import java.util.regex.Matcher;
  *
  * @apiNote checked
  */
-public final class AClass extends Definition {
+public final class AClass extends Declaration {
     /**
      * Tìm kiếm/Tạo {@link AClass} phù hợp với tên {@code name} trong {@code declared}. <br>
      * <i> aka tìm bố mẹ cho trẻ lạc :> </i>
      *
      * @param name Tên cần tìm
      * @param declared Danh sách các {@link AClass} đã định nghĩa
-     * @param fallback Sử dụng {@link Definition} này làm parent nếu không thấy parent
+     * @param fallback Sử dụng {@link Declaration} này làm parent nếu không thấy parent
      * @return AClass phù hợp với {@code name}
      */
     public static AClass find(
-            String name, ExtendedLinkedHashSet<Definition> declared, Definition fallback) {
+            String name, ExtendedLinkedHashSet<Declaration> declared, Declaration fallback) {
         // Đã là Full name
         boolean isFullName = Utilities.isClassExisted(name);
 
-        // Nằm trong đống defined
-        for (Definition defined : declared.view()) {
-            if (!(defined instanceof AClass)) {
+        // Nằm trong đống declared
+        for (Declaration declaration : declared.view()) {
+            if (!(declaration instanceof AClass)) {
                 continue;
             }
             if (isFullName) {
-                if (name.equals(defined.getFullName())) {
-                    return (AClass) defined;
+                if (name.equals(declaration.getFullName())) {
+                    return (AClass) declaration;
                 }
-            } else if (name.equals(defined.getSimpleName())) {
-                return (AClass) defined;
+            } else if (name.equals(declaration.getSimpleName())) {
+                return (AClass) declaration;
             }
         }
 
@@ -63,7 +65,7 @@ public final class AClass extends Definition {
 
     @Override
     protected void readSignature(
-            String signature, ExtendedLinkedHashSet<Definition> externalDefinition, Definition fallback) {
+            String signature, ExtendedLinkedHashSet<Declaration> externalDeclaration, Declaration fallback) {
         Matcher externalMatch = Patterns.IMPORT.matcher(signature);
         if (externalMatch.matches()) {
             final String parentName = externalMatch.group(1);
@@ -71,14 +73,14 @@ public final class AClass extends Definition {
 
             // parent của class có thể là package, hoặc class
             if (!parentName.isEmpty()) {
-                for (Definition definition : externalDefinition.view()) {
-                    if (definition.getFullName().equals(parentName)) {
-                        parent = definition;
+                for (Declaration declaration : externalDeclaration.view()) {
+                    if (declaration.getFullName().equals(parentName)) {
+                        parent = declaration;
                         return;
                     }
                 }
                 parent = new APackage(parentName);
-                externalDefinition.getBase().add(parent);
+                externalDeclaration.getBase().add(parent);
             }
             return;
         }
@@ -94,9 +96,9 @@ public final class AClass extends Definition {
 
     @Override
     public void readCodeBlock(
-            Scanner source, ExtendedLinkedHashSet<Definition> externalDefinition, Definition fallback) {
+            Scanner source, ExtendedLinkedHashSet<Declaration> externalDeclaration, Declaration fallback) {
         LinkedHashMap<AMethod, String> holder = new LinkedHashMap<>();
-        final ExtendedLinkedHashSet<Definition> definedClassAndPackage = getDeclared(); // lazy
+        final ExtendedLinkedHashSet<Declaration> definedClassAndPackage = getDeclared(); // lazy
         if (source.nextLine().contains("{")) {
             int balance = 0;
             do {
@@ -111,7 +113,7 @@ public final class AClass extends Definition {
                 //                } else
                 if (Patterns.METHOD.matcher(line).find()) {
                     final AMethod method = new AMethod(this);
-                    localDefinition.add(method);
+                    internalDeclaration.add(method);
                     holder.put(method, line);
 
                     method.readCodeBlock(source, fallback);
@@ -143,20 +145,20 @@ public final class AClass extends Definition {
     }
 
     public AClass(
-            Definition parent,
+            Declaration parent,
             String signature,
-            ExtendedLinkedHashSet<Definition> externalDeclaration,
-            Definition fallback) {
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         this.parent = parent;
         readSignature(signature, externalDeclaration, fallback);
     }
 
     public AClass(
-            Definition parent,
+            Declaration parent,
             String signature,
             Scanner source,
-            ExtendedLinkedHashSet<Definition> externalDeclaration,
-            Definition fallback) {
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         this(parent, signature, externalDeclaration, fallback);
         readCodeBlock(source, externalDeclaration, fallback);
     }

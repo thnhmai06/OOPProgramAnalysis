@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
  *
  * @apiNote checked
  */
-public final class APackage extends Definition {
+public final class APackage extends Declaration {
     private static final String NO_NAME = "package ;";
     private AClass main;
 
@@ -31,8 +31,8 @@ public final class APackage extends Definition {
     @Override
     protected void readSignature(
             String signature,
-            ExtendedLinkedHashSet<Definition> externalDefinition,
-            Definition fallback) {
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         Matcher internalMatch = Patterns.PACKAGE.matcher(signature);
         if (internalMatch.matches()) {
             simpleName = internalMatch.group(1);
@@ -48,21 +48,21 @@ public final class APackage extends Definition {
     @Override
     protected void readCodeBlock(
             Scanner source,
-            ExtendedLinkedHashSet<Definition> externalDefinition,
-            Definition fallback) {
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         if (source.nextLine().contains("{")) {
             int balance = 0;
             do {
                 final String line = source.nextLine();
 
                 if (Patterns.IMPORT.matcher(line).matches()) {
-                    localDefinition.add(new AClass(this, line, getDeclared(), this));
+                    internalDeclaration.add(new AClass(this, line, getDeclared(), this));
                 } else if (Patterns.CLASS.matcher(line).find()) {
                     AClass clazz = new AClass(this, line, source, getDeclared(), this);
                     if (main == null) {
                         main = clazz;
                     }
-                    localDefinition.add(clazz);
+                    internalDeclaration.add(clazz);
                 }
 
                 // update balance

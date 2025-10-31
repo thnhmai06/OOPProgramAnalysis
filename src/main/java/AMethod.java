@@ -1,4 +1,7 @@
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 
 /**
@@ -11,14 +14,14 @@ import java.util.regex.Matcher;
  *
  * @apiNote checked
  */
-public final class AMethod extends Definition {
+public final class AMethod extends Declaration {
     private Parameters parameters;
 
     @Override
     protected void readCodeBlock(
             Scanner source,
-            ExtendedLinkedHashSet<Definition> externalDefinition,
-            Definition fallback) {
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         if (source.nextLine().contains("{")) {
             int balance = 0;
             do {
@@ -32,20 +35,20 @@ public final class AMethod extends Definition {
         }
     }
 
-    public void readCodeBlock(Scanner source, Definition fallback) {
+    public void readCodeBlock(Scanner source, Declaration fallback) {
         readCodeBlock(source, new ExtendedLinkedHashSet<>(), fallback);
     }
 
     @Override
     protected void readSignature(
             String signature,
-            ExtendedLinkedHashSet<Definition> externalDefinition,
-            Definition fallback) {
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         Matcher match = Patterns.METHOD.matcher(signature);
         if (match.find()) {
             simpleName = match.group(1);
             // parent của method chỉ có thể là class
-            parameters = new Parameters(match.group(2), externalDefinition, fallback);
+            parameters = new Parameters(match.group(2), externalDeclaration, fallback);
         }
     }
 
@@ -54,17 +57,17 @@ public final class AMethod extends Definition {
         return simpleName + '(' + (parameters != null ? parameters.toString() : "") + ')';
     }
 
-    public AMethod(Definition parent) {
+    public AMethod(Declaration parent) {
         this.parent = parent;
     }
 
     public AMethod(
-            Definition parent,
+            Declaration parent,
             String signature,
-            ExtendedLinkedHashSet<Definition> externalDefinition,
-            Definition fallback) {
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         this(parent);
-        readSignature(signature, externalDefinition, fallback);
+        readSignature(signature, externalDeclaration, fallback);
     }
 
     /**
@@ -83,8 +86,8 @@ public final class AMethod extends Definition {
          */
         private static String makeClassFullName(
                 String classes,
-                ExtendedLinkedHashSet<Definition> externalClasses,
-                Definition fallback) {
+                ExtendedLinkedHashSet<Declaration> externalClasses,
+                Declaration fallback) {
             HashMap<String, String> replacements = new HashMap<>();
             Matcher match = Patterns.METHOD_PARAMETER_TYPE.matcher(classes);
             while (match.find()) {
@@ -101,8 +104,8 @@ public final class AMethod extends Definition {
 
         public Parameters(
                 String signature,
-                ExtendedLinkedHashSet<Definition> externalClass,
-                Definition fallback) {
+                ExtendedLinkedHashSet<Declaration> externalClass,
+                Declaration fallback) {
             //            Matcher match = Patterns.METHOD_PARAMETER.matcher(signature);
             //            while (match.find()) {
             //                String name = match.group(2);

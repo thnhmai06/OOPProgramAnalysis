@@ -24,9 +24,9 @@ public class Week10 {
         final APackage aPackage = APackage.from(fileContent);
         final AClass mainClass = aPackage.getMain();
         final List<AMethod> methods = new LinkedList<>();
-        for (Definition definition : mainClass.getLocalDefinition()) {
-            if (definition instanceof AMethod) {
-                methods.add(((AMethod) definition));
+        for (Declaration declaration : mainClass.getLocalDeclaration()) {
+            if (declaration instanceof AMethod) {
+                methods.add(((AMethod) declaration));
             }
         }
 
