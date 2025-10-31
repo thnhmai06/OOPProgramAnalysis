@@ -1,7 +1,4 @@
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 
 /**
@@ -46,9 +43,11 @@ public final class AMethod extends Declaration {
             Declaration fallback) {
         Matcher match = Patterns.METHOD.matcher(signature);
         if (match.find()) {
-            simpleName = match.group(1);
-            // parent của method chỉ có thể là class
-            parameters = new Parameters(match.group(2), externalDeclaration, fallback);
+            String rawGenerics = match.group(1);
+            internalDeclaration.addAll(AClass.parsingGenerics(rawGenerics));
+
+            simpleName = match.group(2);
+            parameters = new Parameters(match.group(3), getDeclared(), fallback);
         }
     }
 

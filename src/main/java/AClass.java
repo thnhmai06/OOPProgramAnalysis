@@ -1,6 +1,4 @@
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 
 /**
@@ -13,7 +11,22 @@ import java.util.regex.Matcher;
  *
  * @apiNote checked
  */
-public final class AClass extends Declaration {
+public class AClass extends Declaration {
+    /**
+     * Parse hết tên Generic có trong {@code rawGenerics} về {@link AClass}.
+     *
+     * @param rawGenerics Generics ở dạng thô
+     * @return Các {@link AClass} tương ứng mỗi generic
+     */
+    public static LinkedHashSet<Declaration> parsingGenerics(String rawGenerics) {
+        LinkedHashSet<String> genericNames = Patterns.getAllGenericName(rawGenerics);
+        LinkedHashSet<Declaration> res = new LinkedHashSet<>();
+        if (!genericNames.isEmpty()) {
+            genericNames.forEach(name -> res.add(new AClass(name)));
+        }
+        return res;
+    }
+
     /**
      * Tìm kiếm/Tạo {@link AClass} phù hợp với tên {@code name} trong {@code declared}. <br>
      * <i> aka tìm bố mẹ cho trẻ lạc :> </i>
@@ -54,12 +67,12 @@ public final class AClass extends Declaration {
         }
 
         // thua, hết cứu, vậy là lần cuối đi bên nhau cay đắng nhưng ko đau :<
+        // chắc chưa bạn? Nếu không có import thì nó vẫn có thể là cùng package là không cần import
+        // nè xdxd
         final AClass newClass = new AClass(name);
-        // chỗ này đoán class là thuộc cùng package (vì ko có import), nhưng có vẻ ko có tác dụng
-        // trong các test, nên ta bỏ nhaaaa
-        //        if (Character.isUpperCase(name.charAt(0))) {
-        //            newClass.parent = fallback;
-        //        }
+        if (Character.isUpperCase(name.charAt(0))) {
+            newClass.parent = fallback;
+        }
         declared.getBase().add(newClass);
         return newClass;
     }
@@ -91,6 +104,8 @@ public final class AClass extends Declaration {
         Matcher internalMatch = Patterns.CLASS.matcher(signature);
         if (internalMatch.find()) {
             simpleName = internalMatch.group(1);
+            String rawGenerics = internalMatch.group(2);
+            internalDeclaration.addAll(AClass.parsingGenerics(rawGenerics));
             return;
         }
 
@@ -140,7 +155,7 @@ public final class AClass extends Declaration {
         return String.format("%s.%s", parent.getFullName(), simpleName);
     }
 
-    private AClass(String simpleName) {
+    public AClass(String simpleName) {
         this.simpleName = simpleName;
     }
 

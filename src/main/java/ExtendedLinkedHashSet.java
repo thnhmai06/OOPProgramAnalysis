@@ -64,6 +64,11 @@ public final class ExtendedLinkedHashSet<T> {
         this.base = base;
     }
 
+    public ExtendedLinkedHashSet(ExtendedLinkedHashSet<T> other) {
+        base = other.base;
+        extend = new LinkedHashSet<>(other.extend);
+    }
+
     public LinkedHashSet<T> getBase() {
         return base;
     }
