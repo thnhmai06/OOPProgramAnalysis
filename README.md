@@ -9,6 +9,8 @@ Trạng thái: **Finished**
 
 **Điểm tổng: 88/100**
 
+<img src="assets/uml.png"></img>
+
 ---------------------------------------------
 
 # Ghi chú:
