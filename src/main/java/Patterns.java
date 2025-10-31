@@ -10,8 +10,7 @@ public final class Patterns {
                     "public (?:\\w+\\s+)*(?:class|interface|enum) (\\w+)[\\s\\S]*?"); // [class]
 
     public static final Pattern METHOD =
-            Pattern.compile(
-                    "static [^=]*? (\\w+)\\(([\\s\\S]*?)\\)[\\s\\S]*?"); // [name,
+            Pattern.compile("static [^=]*? (\\w+)\\(([\\s\\S]*?)\\)[\\s\\S]*?"); // [name,
     // params]
     // Pattern này không đúng ở các trường hợp generic lồng nhau rất phức tạp
     //    public static final Pattern METHOD_PARAMETER = // [classes, name]
