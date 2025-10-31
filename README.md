@@ -4,7 +4,7 @@ Tác giá: [@thnhmai06](https://github.com/thnhmai06) (mình)
 
 Trạng thái: **Finished**
 
-- Điểm chức năng: `83.1/95` _(sai 1 test case bị lỗi)_
+- Điểm chức năng: `83.1/95` _(sai 1 test case bị hỏng)_
 - Điểm quy tắc lập trình: `5/5`
 
 **Điểm tổng: 88/100**
@@ -169,14 +169,21 @@ Tập dữ liệu được sử dụng để làm testcase được lấy từ h
 
 Dưới đây là một số Expected Output cho một số trường hợp trích xuất từ hai repository ở trên:
 
+* **[VolumeInfo.java](https://github.com/Nordstrom/Java-Utils/blob/master/src/main/java/com/nordstrom/common/file/VolumeInfo.java)**
+
 ```
-// VolumeInfo.java
-[getVolumeProps(), getVolumeProps(java.io.InputStream)]
+ getVolumeProps(), getVolumeProps(java.io.InputStream)]
+```
 
-// RandomNumberUtils.java
+* **[RandomNumberUtils.java](https://github.com/RKumsher/utils/blob/master/src/main/java/com/github/rkumsher/number/RandomNumberUtils.java)**
+
+```
 [randomInt(), randomInt(int,int), randomIntLessThan(int), randomLong(), randomPositiveLong(), randomNegativeLong(), randomLong(long,long), randomLongGreaterThan(long), randomLongLessThan(long), randomDouble(), randomPositiveDouble(), randomNegativeDouble(), randomDouble(double,double), randomDoubleGreaterThan(double), randomDoubleLessThan(double)]
+```
 
-// DatabaseUtils.java
+* **[DatabaseUtils.java](https://github.com/Nordstrom/Java-Utils/blob/master/src/main/java/com/nordstrom/common/jdbc/DatabaseUtils.java)**
+
+```
 [update(com.nordstrom.common.jdbc.utils.QueryAPI,java.lang.Object), getInt(com.nordstrom.common.jdbc.utils.QueryAPI,java.lang.Object), getString(com.nordstrom.common.jdbc.utils.QueryAPI,java.lang.Object), getResultPackage(com.nordstrom.common.jdbc.utils.QueryAPI,java.lang.Object), executeQuery(java.lang.Class<?>,com.nordstrom.common.jdbc.utils.QueryAPI,java.lang.Object), executeQuery(java.lang.Class<?>,java.lang.String,java.lang.String,java.lang.Object), getInt(com.nordstrom.common.jdbc.utils.SProcAPI,java.lang.Object), getString(com.nordstrom.common.jdbc.utils.SProcAPI,java.lang.Object), getResultPackage(com.nordstrom.common.jdbc.utils.SProcAPI,java.lang.Object), executeStoredProcedure(java.lang.Class<?>,com.nordstrom.common.jdbc.utils.SProcAPI,java.lang.Object), executeStoredProcedure(java.lang.Class<?>,java.lang.String,java.lang.String,com.nordstrom.common.jdbc.Param), executeStatement(java.lang.Class<?>,java.sql.Connection,java.sql.PreparedStatement), getConnection(java.lang.String)]
 ```
 
