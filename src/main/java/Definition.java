@@ -1,5 +1,6 @@
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -13,7 +14,7 @@ import java.util.Scanner;
  */
 public abstract class Definition {
     protected Definition parent = null;
-    protected final List<Definition> localDeclared = new LinkedList<>();
+    protected final LinkedHashSet<Definition> localDefinition = new LinkedHashSet<>();
     protected String simpleName;
 
     /**
@@ -22,10 +23,10 @@ public abstract class Definition {
      * @param signature Chữ kí
      * @param externalDefinition Các {@link Definition} đã được khai báo bên ngoài
      * @param fallback Sử dụng {@link Definition} này làm parent nếu không thấy parent
-     * @see #readAll(String, Scanner, List, Definition)
+     * @see #readAll(String, Scanner, ExtendedLinkedHashSet, Definition)
      */
     protected abstract void readSignature(
-            String signature, List<Definition> externalDefinition, Definition fallback);
+            String signature, ExtendedLinkedHashSet<Definition> externalDefinition, Definition fallback);
 
     /**
      * Đọc Code block của {@link Definition} tương ứng.
@@ -33,10 +34,10 @@ public abstract class Definition {
      * @param source {@link Scanner} trỏ tới nơi bắt đầu Code block
      * @param externalDefinition Các {@link Definition} đã được khai báo bên ngoài
      * @param fallback Sử dụng {@link Definition} này làm parent nếu không thấy parent
-     * @see #readAll(String, Scanner, List, Definition)
+     * @see #readAll(String, Scanner, ExtendedLinkedHashSet, Definition)
      */
     protected abstract void readCodeBlock(
-            Scanner source, List<Definition> externalDefinition, Definition fallback);
+            Scanner source, ExtendedLinkedHashSet<Definition> externalDefinition, Definition fallback);
 
     /**
      * Đọc Chữ kí và Code block của {@link Definition} tương ứng.
@@ -44,13 +45,13 @@ public abstract class Definition {
      * @param signature Chữ kí
      * @param source {@link Scanner} trỏ tới nơi bắt đầu Code block
      * @param externalDefinition Các {@link Definition} đã được khai báo bên ngoài
-     * @see #readSignature(String, List, Definition)
-     * @see #readCodeBlock(Scanner, List, Definition)
+     * @see #readSignature(String, ExtendedLinkedHashSet, Definition)
+     * @see #readCodeBlock(Scanner, ExtendedLinkedHashSet, Definition)
      */
     protected final void readAll(
             String signature,
             Scanner source,
-            List<Definition> externalDefinition,
+            ExtendedLinkedHashSet<Definition> externalDefinition,
             Definition fallback) {
         readSignature(signature, externalDefinition, fallback);
         readCodeBlock(source, externalDefinition, fallback);
@@ -61,19 +62,20 @@ public abstract class Definition {
      *
      * @return Các khai báo có thể dùng được
      */
-    public final List<Definition> getDeclared() {
-        List<Definition> declared = new LinkedList<>();
+    public final ExtendedLinkedHashSet<Definition> getDeclared() {
+        ExtendedLinkedHashSet<Definition> declared = new ExtendedLinkedHashSet<>(localDefinition);
         if (parent != null) {
-            declared.addAll(parent.getDeclared());
+            declared.extend(parent.getDeclared()); // parent đã chứa nó
         } else {
-            declared.add(this);
+            // trường hợp không tự chứa nó
+            declared.extend(new LinkedHashSet<>(Collections.singletonList(this)));
         }
-        declared.addAll(localDeclared);
+        declared.extend(localDefinition);
         return declared;
     }
 
-    public final List<Definition> getLocalDeclared() {
-        return localDeclared;
+    public final LinkedHashSet<Definition> getLocalDefinition() {
+        return localDefinition;
     }
 
     /**

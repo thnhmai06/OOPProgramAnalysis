@@ -1,9 +1,4 @@
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 
 /**
@@ -18,53 +13,40 @@ import java.util.regex.Matcher;
  */
 public final class AClass extends Definition {
     /**
-     * Lọc ra các {@link AClass} trong {@link HashSet} các {@link Definition}.
-     *
-     * @param definitions Các {@link Definition}
-     * @return Các {@link AClass}
-     */
-    public static List<AClass> filter(List<Definition> definitions) {
-        List<AClass> res = new LinkedList<>();
-        for (Definition definition : definitions) {
-            if (definition instanceof AClass) {
-                res.add((AClass) definition);
-            }
-        }
-        return res;
-    }
-
-    /**
-     * Tìm kiếm/Tạo {@link AClass} phù hợp với tên {@code name} trong {@code definedClasses}. <br>
+     * Tìm kiếm/Tạo {@link AClass} phù hợp với tên {@code name} trong {@code declared}. <br>
      * <i> aka tìm bố mẹ cho trẻ lạc :> </i>
      *
      * @param name Tên cần tìm
-     * @param definedClasses Danh sách các {@link AClass} đã định nghĩa
+     * @param declared Danh sách các {@link AClass} đã định nghĩa
      * @param fallback Sử dụng {@link Definition} này làm parent nếu không thấy parent
      * @return AClass phù hợp với {@code name}
      */
-    public static AClass find(String name, List<AClass> definedClasses, Definition fallback) {
+    public static AClass find(
+            String name, ExtendedLinkedHashSet<Definition> declared, Definition fallback) {
         // Đã là Full name
-        boolean isFullName = AUtilities.isClassExisted(name);
+        boolean isFullName = Utilities.isClassExisted(name);
 
         // Nằm trong đống defined
-        for (AClass definedClass : definedClasses) {
+        for (Definition defined : declared.view()) {
+            if (!(defined instanceof AClass)) {
+                continue;
+            }
             if (isFullName) {
-                if (name.equals(definedClass.getFullName())) {
-                    return definedClass;
+                if (name.equals(defined.getFullName())) {
+                    return (AClass) defined;
                 }
-            } else if (name.equals(definedClass.getSimpleName())) {
-                return definedClass;
+            } else if (name.equals(defined.getSimpleName())) {
+                return (AClass) defined;
             }
         }
 
         // Vẫn ko thấy, dành thử với với class sẵn có thường thấy trong java
-        final String[] commons = {"java.util.", "java.lang."};
-        for (String common : commons) {
+        for (String common : Utilities.commonPackages) {
             final String possibleName = common + name;
-            if (AUtilities.isClassExisted(possibleName)) {
+            if (Utilities.isClassExisted(possibleName)) {
                 final AClass newClass =
                         new AClass(possibleName); // không quan tâm tới package ở đây
-                definedClasses.add(newClass);
+                declared.getBase().add(newClass);
                 return newClass;
             }
         }
@@ -75,13 +57,13 @@ public final class AClass extends Definition {
         if (Character.isUpperCase(name.charAt(0))) {
             newClass.parent = fallback;
         }
-        definedClasses.add(newClass);
+        declared.getBase().add(newClass);
         return newClass;
     }
 
     @Override
     protected void readSignature(
-            String signature, List<Definition> externalDefinition, Definition fallback) {
+            String signature, ExtendedLinkedHashSet<Definition> externalDefinition, Definition fallback) {
         Matcher externalMatch = Patterns.IMPORT.matcher(signature);
         if (externalMatch.matches()) {
             final String parentName = externalMatch.group(1);
@@ -89,13 +71,14 @@ public final class AClass extends Definition {
 
             // parent của class có thể là package, hoặc class
             if (!parentName.isEmpty()) {
-                for (Definition definition : externalDefinition) {
+                for (Definition definition : externalDefinition.view()) {
                     if (definition.getFullName().equals(parentName)) {
                         parent = definition;
                         return;
                     }
                 }
-                simpleName = String.format("%s.%s", parentName, simpleName);
+                parent = new APackage(parentName);
+                externalDefinition.getBase().add(parent);
             }
             return;
         }
@@ -111,9 +94,9 @@ public final class AClass extends Definition {
 
     @Override
     public void readCodeBlock(
-            Scanner source, List<Definition> externalDefinition, Definition fallback) {
+            Scanner source, ExtendedLinkedHashSet<Definition> externalDefinition, Definition fallback) {
         LinkedHashMap<AMethod, String> holder = new LinkedHashMap<>();
-        final List<Definition> definedClassAndPackage = getDeclared(); // lazy
+        final ExtendedLinkedHashSet<Definition> definedClassAndPackage = getDeclared(); // lazy
         if (source.nextLine().contains("{")) {
             int balance = 0;
             do {
@@ -128,15 +111,15 @@ public final class AClass extends Definition {
                 //                } else
                 if (Patterns.METHOD.matcher(line).find()) {
                     final AMethod method = new AMethod(this);
-                    localDeclared.add(method);
+                    localDefinition.add(method);
                     holder.put(method, line);
 
                     method.readCodeBlock(source, fallback);
                 }
 
                 // update balance
-                balance += AUtilities.countChar(line, '{');
-                balance -= AUtilities.countChar(line, '}');
+                balance += Utilities.countChar(line, '{');
+                balance -= Utilities.countChar(line, '}');
             } while (source.hasNextLine() && balance >= 0);
         }
 
@@ -162,7 +145,7 @@ public final class AClass extends Definition {
     public AClass(
             Definition parent,
             String signature,
-            List<Definition> externalDeclaration,
+            ExtendedLinkedHashSet<Definition> externalDeclaration,
             Definition fallback) {
         this.parent = parent;
         readSignature(signature, externalDeclaration, fallback);
@@ -172,7 +155,7 @@ public final class AClass extends Definition {
             Definition parent,
             String signature,
             Scanner source,
-            List<Definition> externalDeclaration,
+            ExtendedLinkedHashSet<Definition> externalDeclaration,
             Definition fallback) {
         this(parent, signature, externalDeclaration, fallback);
         readCodeBlock(source, externalDeclaration, fallback);

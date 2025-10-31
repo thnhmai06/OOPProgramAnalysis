@@ -1,5 +1,19 @@
-/** AUtilities. */
-public final class AUtilities {
+/** Utilities. */
+public final class Utilities {
+    // Regex: java\.(?:[\w$]+\.)+
+    public static final String[] commonPackages = {
+        "java.util.",
+        "java.lang.",
+        "java.",
+        "java.time.",
+        "java.nio.",
+        "java.io.",
+        "java.sql.",
+        "java.nio.file.",
+        "java.util.function.",
+        "java.time.temporal."
+    };
+
     /**
      * AClass có tên {@code fullName} có tồn tại không.
      *
@@ -37,8 +51,9 @@ public final class AUtilities {
      */
     public static String machineFormating(String code) {
         return code.replaceAll(
-                                " +(\\W) +",
-                                "$1") // xóa kiểu "a = b" -> "a=b" (aka làm sát lại gần nhau)
+                                "\\s*([(,=+\\-*/)])\\s+",
+                                "$1") // xóa space quanh dấu phân cách (trừ dấu chấm)
+                        .replaceAll("\\.\\.\\.", "") // xóa varargs
                         .replaceAll("(\\s)\\s+", "$1") // Rút gọn double spacing
                         .replaceAll(
                                 "(package [\\s\\S]*?);", "$1 {") // đưa package về format code block
@@ -66,5 +81,5 @@ public final class AUtilities {
         return count;
     }
 
-    private AUtilities() {}
+    private Utilities() {}
 }

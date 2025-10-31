@@ -1,9 +1,4 @@
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 
 /**
@@ -17,27 +12,13 @@ import java.util.regex.Matcher;
  * @apiNote checked
  */
 public final class AMethod extends Definition {
-    /**
-     * Lọc ra các {@link AMethod} trong {@link List} các {@link Definition}.
-     *
-     * @param definitions Các {@link Definition}
-     * @return Các {@link AMethod}
-     */
-    public static List<AMethod> filter(List<Definition> definitions) {
-        List<AMethod> res = new LinkedList<>();
-        for (Definition definition : definitions) {
-            if (definition instanceof AMethod) {
-                res.add((AMethod) definition);
-            }
-        }
-        return res;
-    }
-
     private Parameters parameters;
 
     @Override
     protected void readCodeBlock(
-            Scanner source, List<Definition> externalDefinition, Definition fallback) {
+            Scanner source,
+            ExtendedLinkedHashSet<Definition> externalDefinition,
+            Definition fallback) {
         if (source.nextLine().contains("{")) {
             int balance = 0;
             do {
@@ -45,31 +26,32 @@ public final class AMethod extends Definition {
                 // ...
 
                 final String line = source.nextLine();
-                balance += AUtilities.countChar(line, '{');
-                balance -= AUtilities.countChar(line, '}');
+                balance += Utilities.countChar(line, '{');
+                balance -= Utilities.countChar(line, '}');
             } while (source.hasNextLine() && balance >= 0);
         }
     }
 
     public void readCodeBlock(Scanner source, Definition fallback) {
-        readCodeBlock(source, new LinkedList<>(), fallback);
+        readCodeBlock(source, new ExtendedLinkedHashSet<>(), fallback);
     }
 
     @Override
     protected void readSignature(
-            String signature, List<Definition> externalDefinition, Definition fallback) {
+            String signature,
+            ExtendedLinkedHashSet<Definition> externalDefinition,
+            Definition fallback) {
         Matcher match = Patterns.METHOD.matcher(signature);
         if (match.find()) {
             simpleName = match.group(1);
             // parent của method chỉ có thể là class
-            parameters =
-                    new Parameters(match.group(2), AClass.filter(externalDefinition), fallback);
+            parameters = new Parameters(match.group(2), externalDefinition, fallback);
         }
     }
 
     @Override
     public String getFullName() {
-        return String.format("%s(%s)", simpleName, parameters.toString());
+        return simpleName + '(' + (parameters != null ? parameters.toString() : "") + ')';
     }
 
     public AMethod(Definition parent) {
@@ -79,7 +61,7 @@ public final class AMethod extends Definition {
     public AMethod(
             Definition parent,
             String signature,
-            List<Definition> externalDefinition,
+            ExtendedLinkedHashSet<Definition> externalDefinition,
             Definition fallback) {
         this(parent);
         readSignature(signature, externalDefinition, fallback);
@@ -100,7 +82,9 @@ public final class AMethod extends Definition {
          * @return Xâu với các AClass là Tên đầy đủ
          */
         private static String makeClassFullName(
-                String classes, List<AClass> externalClasses, Definition fallback) {
+                String classes,
+                ExtendedLinkedHashSet<Definition> externalClasses,
+                Definition fallback) {
             HashMap<String, String> replacements = new HashMap<>();
             Matcher match = Patterns.METHOD_PARAMETER_TYPE.matcher(classes);
             while (match.find()) {
@@ -115,7 +99,10 @@ public final class AMethod extends Definition {
             return classes;
         }
 
-        public Parameters(String signature, List<AClass> externalClass, Definition fallback) {
+        public Parameters(
+                String signature,
+                ExtendedLinkedHashSet<Definition> externalClass,
+                Definition fallback) {
             //            Matcher match = Patterns.METHOD_PARAMETER.matcher(signature);
             //            while (match.find()) {
             //                String name = match.group(2);

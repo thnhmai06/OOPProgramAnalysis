@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /** Week 10. Welcome to the OASIS World Final1! Champion round - Good luck! */
@@ -20,11 +21,16 @@ public class Week10 {
      * @return Các method fullname có trong đây
      */
     public static List<String> getAllFunctions(String fileContent) {
-        final APackage aPackage = new APackage(fileContent);
+        final APackage aPackage = APackage.from(fileContent);
         final AClass mainClass = aPackage.getMain();
-        final List<AMethod> methods = AMethod.filter(mainClass.getLocalDeclared());
-        List<String> res = new ArrayList<>();
+        final List<AMethod> methods = new LinkedList<>();
+        for (Definition definition : mainClass.getLocalDefinition()) {
+            if (definition instanceof AMethod) {
+                methods.add(((AMethod) definition));
+            }
+        }
 
+        List<String> res = new ArrayList<>();
         for (AMethod method : methods) {
             res.add(method.getFullName());
         }

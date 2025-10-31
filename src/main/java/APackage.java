@@ -1,5 +1,3 @@
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 
@@ -18,24 +16,23 @@ public final class APackage extends Definition {
     private AClass main;
 
     /**
-     * Lọc ra các {@link APackage} trong {@link List} các {@link Definition}.
+     * Tạo một {@link APackage} mới từ source code.
      *
-     * @param definitions Các {@link Definition}
-     * @return Các {@link APackage}
+     * @param code Source code
+     * @return Package tương ứng
+     * @see #readAll(String)
      */
-    public static List<APackage> filter(List<Definition> definitions) {
-        List<APackage> res = new LinkedList<>();
-        for (Definition definition : definitions) {
-            if (definition instanceof APackage) {
-                res.add((APackage) definition);
-            }
-        }
+    public static APackage from(String code) {
+        final APackage res = new APackage();
+        res.readAll(code);
         return res;
     }
 
     @Override
     protected void readSignature(
-            String signature, List<Definition> externalDefinition, Definition fallback) {
+            String signature,
+            ExtendedLinkedHashSet<Definition> externalDefinition,
+            Definition fallback) {
         Matcher internalMatch = Patterns.PACKAGE.matcher(signature);
         if (internalMatch.matches()) {
             simpleName = internalMatch.group(1);
@@ -44,42 +41,57 @@ public final class APackage extends Definition {
         throw new IllegalArgumentException("Không đọc được APackage: " + signature);
     }
 
-    public void readSignature(String signature, Definition fallback) {
-        readSignature(signature, new LinkedList<>(), fallback);
+    public void readSignature(String signature) {
+        readSignature(signature, new ExtendedLinkedHashSet<>(), null);
     }
 
     @Override
     protected void readCodeBlock(
-            Scanner source, List<Definition> externalDefinition, Definition fallback) {
+            Scanner source,
+            ExtendedLinkedHashSet<Definition> externalDefinition,
+            Definition fallback) {
         if (source.nextLine().contains("{")) {
             int balance = 0;
             do {
                 final String line = source.nextLine();
 
                 if (Patterns.IMPORT.matcher(line).matches()) {
-                    localDeclared.add(new AClass(this, line, getDeclared(), fallback));
+                    localDefinition.add(new AClass(this, line, getDeclared(), this));
                 } else if (Patterns.CLASS.matcher(line).find()) {
-                    AClass clazz = new AClass(this, line, source, getDeclared(), fallback);
+                    AClass clazz = new AClass(this, line, source, getDeclared(), this);
                     if (main == null) {
                         main = clazz;
                     }
-                    localDeclared.add(clazz);
+                    localDefinition.add(clazz);
                 }
 
                 // update balance
-                balance += AUtilities.countChar(line, '{');
-                balance -= AUtilities.countChar(line, '}');
+                balance += Utilities.countChar(line, '{');
+                balance -= Utilities.countChar(line, '}');
             } while (source.hasNextLine() && balance >= 0);
         }
     }
 
-    public void readCodeBlock(Scanner source, Definition fallback) {
-        readCodeBlock(source, new LinkedList<>(), fallback);
+    public void readCodeBlock(Scanner source) {
+        readCodeBlock(source, new ExtendedLinkedHashSet<>(), null);
     }
 
-    public void readAll(String signature, Scanner source, Definition fallback) {
-        readSignature(signature, fallback);
-        readCodeBlock(source, fallback);
+    /**
+     * Đọc hết {@link APackage} từ code.
+     *
+     * @param code Mã nguồn
+     */
+    public void readAll(String code) {
+        code = Utilities.removeStringAndComments(code);
+        if (!code.startsWith("package")) {
+            code = NO_NAME + "\n" + code;
+        }
+        code = Utilities.machineFormating(code);
+
+        Scanner source = new Scanner(code);
+        String signature = source.nextLine();
+        readSignature(signature);
+        readCodeBlock(source);
     }
 
     @Override
@@ -96,19 +108,20 @@ public final class APackage extends Definition {
     }
 
     /**
-     * Khởi tạo một {@link APackage} từ code.
+     * Khởi tạo {@link APackage} mới.
      *
-     * @param code Mã nguồn
+     * <p>Gọi {@link #readAll(String)} để bắt đầu đọc code
+     *
+     * @see #from(String)
      */
-    public APackage(String code) {
-        code = AUtilities.removeStringAndComments(code);
-        if (!code.startsWith("package")) {
-            code = NO_NAME + "\n" + code;
-        }
-        code = AUtilities.machineFormating(code);
+    public APackage() {}
 
-        Scanner source = new Scanner(code);
-        String signature = source.nextLine();
-        readAll(signature, source, this);
+    /**
+     * Khởi tạo {@link APackage} mới, chỉ có tên.
+     *
+     * @param name Tên Package
+     */
+    public APackage(String name) {
+        simpleName = name;
     }
 }

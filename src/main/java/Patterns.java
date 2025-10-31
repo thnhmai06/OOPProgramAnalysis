@@ -11,7 +11,7 @@ public final class Patterns {
 
     public static final Pattern METHOD =
             Pattern.compile(
-                    "public static [\\s\\S]*? (\\w+)\\(([\\s\\S]*?)\\)[\\s\\S]*?"); // [name,
+                    "static [^=]*? (\\w+)\\(([\\s\\S]*?)\\)[\\s\\S]*?"); // [name,
     // params]
     // Pattern này không đúng ở các trường hợp generic lồng nhau rất phức tạp
     //    public static final Pattern METHOD_PARAMETER = // [classes, name]
