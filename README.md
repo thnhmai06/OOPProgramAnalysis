@@ -1,13 +1,18 @@
-# Thông tin Solution
+# Hướng dẫn làm bài
 
-Tác giá: [@thnhmai06](https://github.com/thnhmai06) (mình)
+1. Clone Branch này về
 
-Trạng thái: **Finished**
+```shell
+git clone --recurse-submodules -b template --single-branch https://github.com/thnhmai06/OOPProgramAnalysis.git
+```
 
-- Điểm chức năng: `83.1/95` _(sai 1 test case bị lỗi)_
-- Điểm quy tắc lập trình: `5/5`
+2. Viết code của bạn ở class [Week10](./src/main/java/Week10.java)
 
-**Điểm tổng: 88/100**
+3. Chạy tests để kiểm tra
+
+```shell
+./gradlew test --tests "Week10Test"
+```
 
 ---------------------------------------------
 
