@@ -42,7 +42,7 @@ public final class AClass extends Declaration {
             }
         }
 
-        // Vẫn ko thấy, dành thử với với class sẵn có thường thấy trong java
+        // Java class commons
         for (String common : Utilities.commonPackages) {
             final String possibleName = common + name;
             if (Utilities.isClassExisted(possibleName)) {
@@ -55,17 +55,20 @@ public final class AClass extends Declaration {
 
         // thua, hết cứu, vậy là lần cuối đi bên nhau cay đắng nhưng ko đau :<
         final AClass newClass = new AClass(name);
-        // ngược lại -> kiểu nguyên thủy
-        if (Character.isUpperCase(name.charAt(0))) {
-            newClass.parent = fallback;
-        }
+        // chỗ này đoán class là thuộc cùng package (vì ko có import), nhưng có vẻ ko có tác dụng
+        // trong các test, nên ta bỏ nhaaaa
+        //        if (Character.isUpperCase(name.charAt(0))) {
+        //            newClass.parent = fallback;
+        //        }
         declared.getBase().add(newClass);
         return newClass;
     }
 
     @Override
     protected void readSignature(
-            String signature, ExtendedLinkedHashSet<Declaration> externalDeclaration, Declaration fallback) {
+            String signature,
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         Matcher externalMatch = Patterns.IMPORT.matcher(signature);
         if (externalMatch.matches()) {
             final String parentName = externalMatch.group(1);
@@ -96,22 +99,19 @@ public final class AClass extends Declaration {
 
     @Override
     public void readCodeBlock(
-            Scanner source, ExtendedLinkedHashSet<Declaration> externalDeclaration, Declaration fallback) {
+            Scanner source,
+            ExtendedLinkedHashSet<Declaration> externalDeclaration,
+            Declaration fallback) {
         LinkedHashMap<AMethod, String> holder = new LinkedHashMap<>();
-        final ExtendedLinkedHashSet<Declaration> definedClassAndPackage = getDeclared(); // lazy
         if (source.nextLine().contains("{")) {
             int balance = 0;
             do {
                 final String line = source.nextLine();
 
-                // TH AClass lồng class (bỏ qua)
-                //                if (Patterns.CLASS.matcher(line).matches()) {
-                //                    final AClass clazz = new AClass(this, line, source,
-                // definedClassAndPackage);
-                //                    localDeclared.add(clazz);
-                //                    definedClassAndPackage.add(clazz); // lazy update
-                //                } else
-                if (Patterns.METHOD.matcher(line).find()) {
+                if (Patterns.CLASS.matcher(line).matches()) {
+                    final AClass clazz = new AClass(this, line, source, getDeclared(), fallback);
+                    internalDeclaration.add(clazz);
+                } else if (Patterns.METHOD.matcher(line).find()) {
                     final AMethod method = new AMethod(this);
                     internalDeclaration.add(method);
                     holder.put(method, line);
