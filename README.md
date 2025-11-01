@@ -17,7 +17,7 @@ git branch -m main
 3. Chạy tests để kiểm tra
 
 ```shell
-./gradlew test --tests "Week10Test"
+./gradlew test
 ```
 
 ---------------------------------------------
