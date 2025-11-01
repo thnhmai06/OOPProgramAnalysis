@@ -5,6 +5,12 @@
 ```shell
 git clone --recurse-submodules -b template --single-branch https://github.com/thnhmai06/OOPProgramAnalysis.git
 ```
+**_**Optional:**_** Đổi tên Branch để khi update lên repo sẽ chạy CI (repo của bạn)
+```shell
+cd OOPProgramAnalysis
+git checkout template
+git branch -m main
+```
 
 2. Viết code của bạn ở class [Week10](./src/main/java/Week10.java)
 
